@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-const size = 10
+const size = 1000
 
 func main() {
-	bytes, err := ioutil.ReadFile("day5/input-small.txt")
+	bytes, err := ioutil.ReadFile("day5/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,9 +36,8 @@ func main() {
 
 	for _, vent := range vents {
 		field.ApplyVent(vent)
-		fmt.Println(vent)
-		fmt.Println(field)
 	}
+	fmt.Println("answer part 1: ", field.GetOverlaps())
 
 }
 
@@ -46,24 +45,44 @@ type VentField [][]int
 
 func (f VentField) ApplyVent(v Vent) {
 	if v.from.x == v.to.x {
+		if v.from.y > v.to.y {
+			v.from.y, v.to.y = v.to.y, v.from.y
+		}
 		for i := v.from.y; i < v.to.y+1; i++ {
-			f.ApplyPoint(Point{
+			p := Point{
 				x: v.from.x,
 				y: i,
-			})
+			}
+			f.ApplyPoint(p)
 		}
 	} else if v.from.y == v.to.y {
+		if v.from.x > v.to.x {
+			v.from.x, v.to.x = v.to.x, v.from.x
+		}
 		for i := v.from.x; i < v.to.x+1; i++ {
-			f.ApplyPoint(Point{
+			p := Point{
 				x: i,
 				y: v.from.y,
-			})
+			}
+			f.ApplyPoint(p)
 		}
 	}
 }
 
 func (f VentField) ApplyPoint(p Point) {
 	f[p.y][p.x] += 1
+}
+
+func (f VentField) GetOverlaps() int {
+	overlaps := 0
+	for _, line := range f {
+		for _, val := range line {
+			if val > 1 {
+				overlaps++
+			}
+		}
+	}
+	return overlaps
 }
 
 func (f VentField) String() string {
