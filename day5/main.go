@@ -35,15 +35,20 @@ func main() {
 	}
 
 	for _, vent := range vents {
-		field.ApplyVent(vent)
+		field.ApplyVent(vent, false)
 	}
 	fmt.Println("answer part 1: ", field.GetOverlaps())
 
+	field.Reset()
+	for _, vent := range vents {
+		field.ApplyVent(vent, true)
+	}
+	fmt.Println("answer part 2: ", field.GetOverlaps())
 }
 
 type VentField [][]int
 
-func (f VentField) ApplyVent(v Vent) {
+func (f VentField) ApplyVent(v Vent, withDiag bool) {
 	if v.from.x == v.to.x {
 		if v.from.y > v.to.y {
 			v.from.y, v.to.y = v.to.y, v.from.y
@@ -55,6 +60,7 @@ func (f VentField) ApplyVent(v Vent) {
 			}
 			f.ApplyPoint(p)
 		}
+
 	} else if v.from.y == v.to.y {
 		if v.from.x > v.to.x {
 			v.from.x, v.to.x = v.to.x, v.from.x
@@ -65,6 +71,29 @@ func (f VentField) ApplyVent(v Vent) {
 				y: v.from.y,
 			}
 			f.ApplyPoint(p)
+		}
+
+	} else if withDiag {
+		if v.from.x > v.to.x && v.from.y > v.to.y || v.from.x < v.to.x && v.from.y > v.to.y {
+			v.from.x, v.to.x = v.to.x, v.from.x
+			v.from.y, v.to.y = v.to.y, v.from.y
+		}
+		if v.from.x < v.to.x && v.from.y < v.to.y {
+			for i := 0; i <= v.to.x-v.from.x; i++ {
+				p := Point{
+					x: v.from.x + i,
+					y: v.from.y + i,
+				}
+				f.ApplyPoint(p)
+			}
+		} else if v.from.x > v.to.x && v.from.y < v.to.y {
+			for i := 0; i <= v.from.x-v.to.x; i++ {
+				p := Point{
+					x: v.from.x - i,
+					y: v.from.y + i,
+				}
+				f.ApplyPoint(p)
+			}
 		}
 	}
 }
@@ -83,6 +112,14 @@ func (f VentField) GetOverlaps() int {
 		}
 	}
 	return overlaps
+}
+
+func (f VentField) Reset() {
+	for i, line := range f {
+		for j := range line {
+			f[i][j] = 0
+		}
+	}
 }
 
 func (f VentField) String() string {
